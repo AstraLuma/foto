@@ -27,13 +27,17 @@
     <img id="preview">
     <script async>
 $(function() {
+    $('#webcam').on('photo-taken', function(event) {
+        var photo = event.originalEvent.detail.photo; // jQuery! Y u no detail?
+        $('#snaps').append(
+            $('<img>').attr('src', photo)
+        );
+    });
     $('#snap').click(function() {
-        console.log("Cheese!");
-        $('#webcam')[0].take().then(function(photo) {
-            $('#snaps').append(
-                $('<img>').attr('src', photo)
-            );
-        });
+        $('#webcam')[0].take();
+    });
+    $('#webcam').click(function() {
+        $('#webcam')[0].take();
     });
 });
     </script>

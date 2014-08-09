@@ -99,7 +99,7 @@
             this._ctx.drawImage(this.$.stream, 0, 0);
             var photo = this._canvas.toDataURL(this.type);
             this.lastpic = photo;
-            this.fire('taken', {'photo': photo});
+            this.fire('photo-taken', {'photo': photo});
             resolve(photo);
           } else {
             reject(/*...*/);
