@@ -1,0 +1,112 @@
+<link rel="import" href="polymer/polymer.html">
+<polymer-element name="foto-webcam" attributes="auto lastpic type">
+  <template>
+    <style>
+      :host {
+        display: flex;
+      }
+      video {
+        margin: auto;
+      }
+    </style>
+    <video id="stream" autoplay></video>
+  </template>
+  <script>
+  (function() {
+    function proGetUserMedia(constraints) {
+      return new Promise(function(resolve, reject) {
+        if (navigator.webkitGetUserMedia) {
+          navigator.webkitGetUserMedia(constraints, resolve, reject);
+        } else if (navigator.mozGetUserMedia) {
+          navigator.mozGetUserMedia(constraints, resolve, reject);
+        } else if (navigator.msGetUserMedia) {
+          navigator.msGetUserMedia(constraints, resolve, reject);
+        } else {
+          navigator.getUserMedia(constraints, resolve, reject);
+        }
+      });
+    }
+
+    Polymer('foto-webcam', {
+      auto: false,
+      type: 'image/png',
+      ready: function () {
+        this._canvas = document.createElement('canvas');
+        this._ctx = this._canvas.getContext('2d');
+        this._lms = null;
+        window.addEventListener('resize', this._resize.bind(this));
+      },
+      autoChanged: function(_, value) {
+        if (value) {
+          this.start();
+        }
+      },
+      attached: function() {
+        console.debug("Attached");
+        this._resize();
+      },
+      onResize: function() {
+        console.debug("Resized");
+        this._resize();
+      },
+      _resize: function () {
+        // Expand <video> to fill space without distortion
+        var wratio = this.clientWidth / this.$.stream.videoWidth;
+        var hratio = this.clientHeight / this.$.stream.videoHeight;
+        console.debug("Resized: Ratios:", hratio, wratio);
+        if (hratio > wratio) {
+          console.debug("Resized: Width: ", this.clientWidth);
+          this.$.stream.width = this.clientWidth;
+          this.$.stream.height = this.$.stream.videoHeight * wratio;
+        } else {
+          console.debug("Resized: Height: ", this.clientHeight);
+          this.$.stream.height = this.clientHeight;
+          this.$.stream.width = this.$.stream.videoWidth * hratio;
+        }
+      },
+      _sizeCanvas: function() {
+        // video.onloadedmetadata not firing in Chrome so we have to hack.
+        // See crbug.com/110938.
+        this.job('canvas-resize', function() {
+          if (!this.$.stream.videoWidth) {
+            this.async(this._sizeCanvas);
+            return;
+          }
+          // Does this work if video != 100%?
+          console.debug("Resizing canvas");
+          this._canvas.width = this.$.stream.videoWidth;
+          this._canvas.height = this.$.stream.videoHeight;
+          this._resize();
+        }, 100);
+      },
+      start: function() {
+        console.debug("Starting capture...");
+        proGetUserMedia({video: true}).then(function(stream) {
+          console.debug("Have UserMedia", stream);
+          this.$.stream.src = window.URL.createObjectURL(stream);
+          this._lms = stream;
+          this._sizeCanvas();
+        }.bind(this), function(err) {
+          console.log("Unable to get UserMedia: ", err);
+        });
+      },
+      stop: function() {
+        console.log("<foto-webcam>.stop() not yet implemented.")
+      },
+      take: function() {
+        return new Promise(function(resolve, reject) {
+          if (this._lms) {
+            this._ctx.drawImage(this.$.stream, 0, 0);
+            var photo = this._canvas.toDataURL(this.type);
+            this.lastpic = photo;
+            this.fire('taken', {'photo': photo});
+            resolve(photo);
+          } else {
+            reject(/*...*/);
+          }
+        }.bind(this));
+      },
+    });
+  })();
+  </script>
+</polymer-element>

@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Foto</title>
+    <script src="components/platform/platform.js"></script>
+    <link rel="import" href="components/webcam.html">
+    <script src="components/jquery/dist/jquery.min.js"></script>
+    <style>
+    #webcam {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: -10;
+    }
+    #preview {
+        max-width: 10em;
+        display: block;
+    }
+    </style>
+  </head>
+  <body>
+    <foto-webcam id="webcam" auto></foto-webcam>
+    <button id="snap">Take Picture</button>
+    <img id="preview">
+    <script async>
+$(function() {
+    $('#snap').click(function() {
+        console.log("Cheese!");
+        $('#webcam')[0].take().then(function(photo) {
+            $('#preview')[0].src = photo;
+        })
+    });
+});
+    </script>
+  </body>
+</html>
