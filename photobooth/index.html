@@ -14,7 +14,7 @@
         bottom: 0;
         z-index: -10;
     }
-    #preview {
+    #snaps > img {
         max-width: 10em;
         display: block;
     }
@@ -23,14 +23,17 @@
   <body>
     <foto-webcam id="webcam" auto></foto-webcam>
     <button id="snap">Take Picture</button>
+    <div id="snaps"></div>
     <img id="preview">
     <script async>
 $(function() {
     $('#snap').click(function() {
         console.log("Cheese!");
         $('#webcam')[0].take().then(function(photo) {
-            $('#preview')[0].src = photo;
-        })
+            $('#snaps').append(
+                $('<img>').attr('src', photo)
+            );
+        });
     });
 });
     </script>
