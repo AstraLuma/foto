@@ -18,27 +18,43 @@
         max-width: 10em;
         display: block;
     }
+    #countdown {
+        position: absolute;
+        top: 0;
+        right: 0;
+        font-size: 10em;
+    }
     </style>
   </head>
   <body>
     <foto-webcam id="webcam" auto></foto-webcam>
+    <div id="countdown"></div>
     <button id="snap">Take Picture</button>
     <div id="snaps"></div>
     <img id="preview">
     <script async>
+function takePhoto() {
+    var currentCount = 3;
+    $('#countdown').text(currentCount);
+    var intid = window.setInterval(function() {
+        currentCount--;
+        if (currentCount > 0) {
+            $('#countdown').text(currentCount);
+        } else {
+            $('#countdown').text("");
+            window.clearInterval(intid);
+            $('#webcam')[0].take().then(function(photo) {
+                $('#snaps').append(
+                    $('<img>').attr('src', photo)
+                );
+            });
+        }
+    }, 1000);
+}
+
 $(function() {
-    $('#webcam').on('photo-taken', function(event) {
-        var photo = event.originalEvent.detail.photo; // jQuery! Y u no detail?
-        $('#snaps').append(
-            $('<img>').attr('src', photo)
-        );
-    });
-    $('#snap').click(function() {
-        $('#webcam')[0].take();
-    });
-    $('#webcam').click(function() {
-        $('#webcam')[0].take();
-    });
+    $('#snap').click(takePhoto);
+    $('#webcam').click(takePhoto);
 });
     </script>
   </body>
