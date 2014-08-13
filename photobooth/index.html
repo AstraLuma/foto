@@ -24,6 +24,9 @@
         right: 0;
         font-size: 10em;
     }
+    #throbber {
+        display: none;
+    }
     </style>
   </head>
   <body>
@@ -31,8 +34,30 @@
     <div id="countdown"></div>
     <button id="snap">Take Picture</button>
     <div id="snaps"></div>
-    <img id="preview">
+    <progress id="throbber"></progress>
     <script async>
+/**
+ * Throws up a standard spinner (throbber) on the page until the given promise completes, one way or another.
+ * Returns the original promise, so this can be used as a wrapper.
+ * 
+ * TODO: If promise fails, throw up a error message (toaster?)
+ */
+function throb(promise) {
+    $('#throbber').show();
+    promise.then(
+    function() {
+        $('#throbber').hide();
+    },
+    function(err) {
+        $('#throbber').hide();
+        console.log(err);
+    });
+    return promise;
+}
+
+/**
+ * Responsible for taking 1 photo, and all the associated actions preceding and following that.
+ */
 function takePhoto() {
     var currentCount = 3;
     $('#countdown').text(currentCount);
@@ -47,6 +72,17 @@ function takePhoto() {
                 $('#snaps').append(
                     $('<img>').attr('src', photo)
                 );
+                if ($('#snaps img').length >= 4) {
+                    var imgs = $('#snaps img').map(function (i, elem) {return elem.src;});
+                    //TODO: AJAX imgs
+                    throb(new Promise(function (resolve, reject) {
+                        console.log('AJAX this:', imgs);
+                        window.setTimeout(resolve, 2*1000);
+                    }))
+                    .then(function() {
+                        $('#snaps').empty();
+                    });
+                }
             });
         }
     }, 1000);
